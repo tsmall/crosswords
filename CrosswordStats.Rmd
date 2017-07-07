@@ -1,0 +1,104 @@
+---
+title: "Nerdy Crossword Statistics"
+author: "Tom Small III"
+output:
+  html_document:
+    theme: yeti
+    toc: true
+    toc_float: true
+    code_folding: hide
+    df_print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+Teresa and I have become avid New York Times crossword people. It kind of happened by accident. We started doing crosswords for fun together to pass the time. We eventually tried the NY Times's crosswords, and realized that they were much better than everyone else's, so we subscribed. Now we do one every morning with our coffee.
+
+We watched [*Wordplay*](https://en.wikipedia.org/wiki/Wordplay_%28film%29) and laughed at the notebooks people in it kept of their completion times. Well, I guess the laugh's on us. This is our notebook. And since I'm a programmer, it's even nerdier: our notebook has built-in analysis.
+
+## Colophon
+
+This document is a literate program written in the [R](https://www.r-project.org/) programming language, using RStudio's [R Markdown](http://rmarkdown.rstudio.com/) feature. It uses a few great libraries from [the tidyverse](http://tidyverse.org/), which you can see in the code block below.
+
+```{r, message=FALSE, warning=FALSE}
+library(lubridate)
+library(tidyverse)
+```
+
+## Source data
+
+The source data is the amount of time it took us to complete each day's puzzle. It comes from a CSV file, which for now I'm manually editing every day. You can see the last seven days' worth of data below.
+
+```{r, message=FALSE, warning=FALSE}
+completion_times <- read_csv(file = "2017.csv") %>%
+  mutate(
+    Weekday = wday(Date, label = TRUE),
+    Month = month(Date, label = TRUE)
+  )
+
+# Print the last seven days worth of data.
+tail(
+  select(completion_times, Date, Weekday, Time),
+  n = 7
+)
+```
+
+## Times by day
+
+Now that we have our raw data, we can start the fun part: analyzing it. We'll start with a few obvious questions: for each day of the week, what is our average, fastest, and slowest time?
+
+```{r, message=FALSE, warning=FALSE}
+times_by_day <- completion_times %>%
+  group_by(Weekday) %>%
+  summarise(
+    Average = hms::as.hms(round(mean(Time))),
+    Fastest = min(Time),
+    Slowest = max(Time)
+  )
+
+times_by_day
+```
+
+Here you can see our average times graphically:
+
+```{r, message=FALSE, warning=FALSE}
+ggplot(times_by_day) +
+  geom_bar(
+    mapping = aes(x = Weekday, y = Average),
+    stat = "identity"
+  )
+```
+
+And this is a visual representation of the variation in our times:
+
+```{r, message=FALSE, warning=FALSE}
+ggplot(completion_times) +
+  geom_boxplot(
+    mapping = aes(x = Weekday, y = Time)
+  )
+```
+
+## By day, by month
+
+We're also curious how our times change from month to month. Our hypothesis is that they'll get longer every month of the year, from January to December, because the puzzles themselves will get harder.
+
+```{r, message=FALSE, warning=FALSE}
+times_by_month <- completion_times %>%
+  group_by(Month, Weekday) %>%
+  summarise(
+    Average = hms::as.hms(round(mean(Time)))
+  )
+
+ggplot(times_by_month) +
+  geom_bar(
+    mapping = aes(x = Weekday, y = Average, fill = Month),
+    position = "dodge",
+    stat = "identity"
+  )
+```
+
+It's tough to tell so far if that's actually true. It's true for some of the days, but not all of them. We'll have to wait and see what happens over the course of the year to have a better answer to the question.
