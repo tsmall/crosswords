@@ -3,11 +3,11 @@ title: "Nerdy Crossword Statistics"
 author: "Tom Small III"
 output:
   html_document:
-    theme: yeti
-    toc: true
-    toc_float: true
     code_folding: hide
     df_print: kable
+    theme: yeti
+    toc: yes
+    toc_float: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -16,13 +16,17 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction
 
-Teresa and I have become avid New York Times crossword people. It kind of happened by accident. We started doing crosswords for fun together to pass the time. We eventually tried the NY Times's crosswords, and realized that they were much better than everyone else's, so we subscribed. Now we do one every morning with our coffee.
+Teresa and I are avid New York Times crossword people. It kind of happened by accident. We started solving crosswords for fun together to pass the time. We eventually tried the NY Times's crosswords, and quickly realized how much better they are than everyone else's. So we subscribed, and now we do one every morning with our coffee.
 
 We watched [*Wordplay*](https://en.wikipedia.org/wiki/Wordplay_%28film%29) and laughed at the notebooks people in it kept of their completion times. Well, I guess the laugh's on us. This is our notebook. And since I'm a programmer, it's even nerdier: our notebook has built-in analysis.
 
 ## Colophon
 
-This document is a literate program written in the [R](https://www.r-project.org/) programming language, using RStudio's [R Markdown](http://rmarkdown.rstudio.com/) feature. It uses a few great libraries from [the tidyverse](http://tidyverse.org/), which you can see in the code block below.
+This document is a literate program written in the [R programming language][RLANG], using RStudio's [R Markdown][RMARK] feature. It uses a few great libraries from [the tidyverse][TIDYV].
+
+  [RLANG]: https://www.r-project.org/
+  [RMARK]: http://rmarkdown.rstudio.com/
+  [TIDYV]: http://tidyverse.org/
 
 ```{r, message=FALSE, warning=FALSE}
 library(lubridate)
@@ -34,10 +38,14 @@ library(tidyverse)
 The source data is the amount of time it took us to complete each day's puzzle. It comes from a CSV file, which for now I'm manually editing every day. You can see the last seven days' worth of data below.
 
 ```{r, message=FALSE, warning=FALSE}
-completion_times <- read_csv(file = "2017.csv") %>%
+times_for_2017 <- read_csv(file = "2017.csv")
+times_for_2018 <- read_csv(file = "2018.csv")
+
+completion_times <- rbind(times_for_2017, times_for_2018) %>%
   mutate(
     Weekday = wday(Date, label = TRUE),
-    Month = month(Date, label = TRUE)
+    Month = month(Date, label = TRUE),
+    Year = year(Date)
   )
 
 # Print the last seven days worth of data.
@@ -102,3 +110,73 @@ ggplot(times_by_month) +
 ```
 
 It's tough to tell so far if that's actually true. It's true for some of the days, but not all of them. We'll have to wait and see what happens over the course of the year to have a better answer to the question.
+
+## Year over year
+
+```{r, message=FALSE, warning=FALSE}
+times_by_weekday_year <- completion_times %>%
+  group_by(Weekday, Year) %>%
+  summarise(
+    Average = hms::as.hms(round(mean(Time)))
+  )
+
+times_by_weekday_year$Year <- factor(times_by_weekday_year$Year)
+
+ggplot(times_by_weekday_year) +
+  geom_bar(
+    mapping = aes(x = Weekday, y = Average, fill = Year),
+    position = "dodge",
+    stat = "identity"
+  )
+```
+
+```{r, message=FALSE, warning=FALSE}
+times_by_month_year <- completion_times %>%
+  group_by(Month, Year) %>%
+  summarise(
+    Average = hms::as.hms(round(mean(Time)))
+  )
+
+times_by_month_year$Year <- factor(times_by_month_year$Year)
+
+ggplot(times_by_month_year) +
+  geom_bar(
+    mapping = aes(x = Month, y = Average, fill = Year),
+    position = "dodge",
+    stat = "identity"
+  )
+```
+
+## Over time
+
+```{r, message=FALSE, warning=FALSE}
+ggplot(completion_times, mapping = aes(x = Date, y = Time, color = Weekday)) +
+  geom_point() +
+  geom_smooth(se = FALSE)
+```
+
+## Dates we missed
+
+We try to do the crossword every day. But we've missed some days. This list shows all of the dates we don't have times for yet. That way we can go back and fill them in.
+
+```{r, message=FALSE, warning=FALSE}
+gaps <- completion_times %>%
+  mutate(
+    Prev = lag(Date),
+    Diff = Date - Prev
+  ) %>%
+  dplyr::filter(Diff > 1) %>%
+  select(
+    Date.Curr = Date,
+    Date.Prev = Prev,
+    Diff
+  )
+
+md <- mapply(":", gaps$Date.Curr - 1, gaps$Date.Prev + 1) %>% unlist()
+
+tibble(
+  Date = as_date(md),
+  Weekday = wday(Date, label = TRUE)
+) %>%
+  arrange(Date)
+```
