@@ -49,10 +49,9 @@ completion_times <- rbind(times_for_2017, times_for_2018) %>%
   )
 
 # Print the last seven days worth of data.
-tail(
-  select(completion_times, Date, Weekday, Time),
-  n = 7
-)
+completion_times %>%
+  select(Date, Weekday, Time) %>%
+  tail(n = 7)
 ```
 
 ## Times by day
@@ -116,9 +115,7 @@ It's tough to tell so far if that's actually true. It's true for some of the day
 ```{r, message=FALSE, warning=FALSE}
 times_by_weekday_year <- completion_times %>%
   group_by(Weekday, Year) %>%
-  summarise(
-    Average = hms::as.hms(round(mean(Time)))
-  )
+  summarise(Average = hms::as.hms(round(mean(Time))))
 
 times_by_weekday_year$Year <- factor(times_by_weekday_year$Year)
 
@@ -133,9 +130,7 @@ ggplot(times_by_weekday_year) +
 ```{r, message=FALSE, warning=FALSE}
 times_by_month_year <- completion_times %>%
   group_by(Month, Year) %>%
-  summarise(
-    Average = hms::as.hms(round(mean(Time)))
-  )
+  summarise(Average = hms::as.hms(round(mean(Time))))
 
 times_by_month_year$Year <- factor(times_by_month_year$Year)
 
