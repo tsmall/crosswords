@@ -149,29 +149,3 @@ ggplot(completion_times, mapping = aes(x = Date, y = Time, color = Weekday)) +
   geom_point() +
   geom_smooth(se = FALSE)
 ```
-
-## Dates we missed
-
-We try to do the crossword every day. But we've missed some days. This list shows all of the dates we don't have times for yet. That way we can go back and fill them in.
-
-```{r, message=FALSE, warning=FALSE}
-gaps <- completion_times %>%
-  mutate(
-    Prev = lag(Date),
-    Diff = Date - Prev
-  ) %>%
-  dplyr::filter(Diff > 1) %>%
-  select(
-    Date.Curr = Date,
-    Date.Prev = Prev,
-    Diff
-  )
-
-md <- mapply(":", gaps$Date.Curr - 1, gaps$Date.Prev + 1) %>% unlist()
-
-tibble(
-  Date = as_date(md),
-  Weekday = wday(Date, label = TRUE)
-) %>%
-  arrange(Date)
-```
