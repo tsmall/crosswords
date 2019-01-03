@@ -40,8 +40,13 @@ The source data is how long it took us to complete each day's puzzle. The NY Tim
 ```{r, message=FALSE, warning=FALSE}
 times_for_2017 <- read_csv(file = "2017.csv")
 times_for_2018 <- read_csv(file = "2018.csv")
+times_for_2019 <- read_csv(file = "2019.csv")
 
-completion_times <- rbind(times_for_2017, times_for_2018) %>%
+completion_times <- rbind(
+    times_for_2017,
+    times_for_2018,
+    times_for_2019
+  ) %>%
   mutate(
     Weekday = wday(Date, label = TRUE),
     Month = month(Date, label = TRUE),
