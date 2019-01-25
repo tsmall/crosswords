@@ -35,7 +35,9 @@ library(tidyverse)
 
 ## Source data
 
-The source data is how long it took us to complete each day's puzzle. The NY Times doesn't provide an API to get this data. Plus, I like having my own local copy. So I type our completion times into a CSV file after we finish each puzzle.
+The source data is how long it took us to complete each day's puzzle. The NY Times doesn't provide an API to get this data. Plus I like having my own local copy. So every day after we finish the puzzle I type our completion times into a CSV file.
+
+I have one CSV file for each year since we started tracking. Here I load all of them into a single variable (`completion_times`) and parse the date.
 
 ```{r, message=FALSE, warning=FALSE}
 times_for_2017 <- read_csv(file = "2017.csv")
@@ -64,7 +66,7 @@ completion_times %>%
 
 ## Analysis
 
-Now that we have our raw data, we can start the fun part: analyzing it.
+Now that we have our raw data we can start the fun part: analyzing it.
 
 ### Times by day
 
