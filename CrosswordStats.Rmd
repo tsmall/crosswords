@@ -101,6 +101,20 @@ ggplot(completion_times) +
   )
 ```
 
+### Percentiles
+
+Averages can be heavily skewed by outliers. Percentiles can help give a clearer picture of a large set of data points. Here are the 85th, 75th, and 50th percentiles for the completion dates.
+
+```{r, message=FALSE, warning=FALSE}
+completion_times %>%
+  group_by(Weekday) %>%
+  summarise(
+    "85th" = hms::as.hms(round(quantile(Time, probs = 0.85))),
+    "75th" = hms::as.hms(round(quantile(Time, probs = 0.75))),
+    "50th" = hms::as.hms(round(quantile(Time, probs = 0.5)))
+  )
+```
+
 ### By day, by month
 
 We're also curious how our times change from month to month. Our hypothesis is that they'll get longer every month of the year, from January to December, because the puzzles themselves will get harder.
