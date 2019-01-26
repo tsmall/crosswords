@@ -113,7 +113,8 @@ completion_times %>%
   summarise(
     "85th" = hms::as.hms(round(quantile(Time, probs = 0.85))),
     "75th" = hms::as.hms(round(quantile(Time, probs = 0.75))),
-    "50th" = hms::as.hms(round(quantile(Time, probs = 0.5)))
+    "50th" = hms::as.hms(round(quantile(Time, probs = 0.5))),
+    "25th" = hms::as.hms(round(quantile(Time, probs = 0.25)))
   )
 ```
 
