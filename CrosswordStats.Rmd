@@ -79,8 +79,8 @@ times_by_day <- completion_times %>%
   group_by(Weekday) %>%
   summarise(
     Average = hms::as.hms(round(mean(Time))),
-    Fastest = min(Time),
-    Slowest = max(Time)
+    Fastest = hms::as.hms(min(Time)),
+    Slowest = hms::as.hms(max(Time))
   )
 
 times_by_day
