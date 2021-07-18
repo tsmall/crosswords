@@ -65,12 +65,12 @@ completion_times <- rbind(
   )
 ```
 
-Here are the last seven days' worth of data.
+Here are the last eight days' worth of data.
 
 ```{r, message=FALSE, warning=FALSE}
 completion_times %>%
   select(Date, Weekday, Time) %>%
-  tail(n = 7)
+  tail(n = 8)
 ```
 
 ## Analysis
