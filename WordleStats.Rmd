@@ -1,0 +1,86 @@
+---
+title: "Wordle Stats"
+author: "Tom Small"
+date: "4/3/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(lubridate)
+library(tidyverse)
+```
+
+## Source Data
+
+The source data is whether we won and, if so, the number of guesses it took us to find the word. These are stored in a single CSV file.
+
+```{r}
+wordle_stats <-
+  read_csv(file = "wordle.csv", col_types = cols(
+    Date    = col_date(format = ""),
+    Won     = col_factor(levels = c('0', '1')),
+    Guesses = col_factor(levels = c('1', '2', '3', '4', '5', '6'))
+  )) %>%
+  mutate(Weekday = wday(Date, label = TRUE)) %>%
+  select(Date, Weekday, Won, Guesses)
+
+wordle_wins <- filter(wordle_stats, Won == 1)
+```
+
+Here are the last eight days worth of data.
+
+```{r}
+tail(wordle_stats, n = 8)
+```
+
+## Wins vs Loses
+
+```{r}
+wordle_stats %>%
+  group_by(Won) %>%
+  count() %>%
+  ungroup() %>%
+  mutate(percent = `n` / sum(`n`)) %>%
+  arrange(percent) %>%
+  mutate(labels = scales::percent(percent)) %>%
+  ggplot(., aes(x = "", y = percent, fill = Won)) +
+    geom_col() +
+    geom_text(aes(label = labels), position = position_stack(vjust = 0.5)) +
+    coord_polar(theta = "y") +
+    theme_void()
+```
+
+## All Time
+
+```{r}
+guesses_all_time <- wordle_wins %>%
+  group_by(Guesses) %>%
+  summarise(Count = n())
+
+guesses_all_time
+```
+
+```{r}
+ggplot(guesses_all_time) +
+  geom_bar(
+    mapping = aes(x = Guesses, y = Count),
+    stat = "identity"
+  )
+```
+
+## By Weekday
+
+```{r}
+wordle_wins %>%
+  group_by(Weekday, Guesses) %>%
+  summarise(Count = n()) %>%
+  ggplot() +
+    geom_bar(
+      mapping = aes(x = Weekday, y = Count),
+      position = "dodge",
+      stat = "identity"
+    ) +
+    facet_wrap(~ Guesses)
+```
