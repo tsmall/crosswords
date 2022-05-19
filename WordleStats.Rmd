@@ -63,6 +63,17 @@ guesses_all_time
 ```
 
 ```{r}
+wordle_wins %>%
+  mutate(
+    Guesses = as.numeric(levels(Guesses)[Guesses])
+  ) %>%
+  summarise(
+    mean = mean(Guesses),
+    median = median(Guesses),
+  )
+```
+
+```{r}
 ggplot(guesses_all_time) +
   geom_bar(
     mapping = aes(x = Guesses, y = Count),
