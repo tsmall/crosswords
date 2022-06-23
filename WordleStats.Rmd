@@ -20,13 +20,15 @@ The source data is whether we won and, if so, the number of guesses it took us t
 wordle_stats <-
   read_csv(file = "wordle.csv", col_types = cols(
     Date    = col_date(format = ""),
-    Won     = col_factor(levels = c('0', '1')),
     Guesses = col_factor(levels = c('1', '2', '3', '4', '5', '6', 'X'))
   )) %>%
-  mutate(Weekday = wday(Date, label = TRUE)) %>%
+  mutate(
+    Weekday = wday(Date, label = TRUE),
+    Won = Guesses != 'X',
+  ) %>%
   select(Date, Weekday, Won, Guesses)
 
-wordle_wins <- filter(wordle_stats, Won == 1)
+wordle_wins <- filter(wordle_stats, Won == TRUE)
 ```
 
 Here are the last eight days worth of data.
@@ -84,7 +86,7 @@ ggplot(guesses_all_time) +
 ## By Weekday
 
 ```{r}
-wordle_wins %>%
+wordle_stats %>%
   group_by(Weekday, Guesses) %>%
   summarise(Count = n()) %>%
   ggplot() +
