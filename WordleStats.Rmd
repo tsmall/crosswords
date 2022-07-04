@@ -57,7 +57,7 @@ wordle_stats %>%
 ## All Time
 
 ```{r}
-guesses_all_time <- wordle_wins %>%
+guesses_all_time <- wordle_stats %>%
   group_by(Guesses) %>%
   summarise(Count = n())
 
