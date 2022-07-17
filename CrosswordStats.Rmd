@@ -152,7 +152,7 @@ ggplot(times_by_month) +
 
 It's tough to tell so far if that's actually true. It's true for some of the days, but not all of them. We'll have to wait and see what happens over the course of the year to have a better answer to the question.
 
-### Year over year
+### By day, by year
 
 ```{r, message=FALSE, warning=FALSE}
 times_by_weekday_year <- completion_times %>%
@@ -168,6 +168,8 @@ ggplot(times_by_weekday_year) +
     stat = "identity"
   )
 ```
+
+### By month, by year
 
 ```{r, message=FALSE, warning=FALSE}
 times_by_month_year <- completion_times %>%
