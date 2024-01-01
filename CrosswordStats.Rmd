@@ -53,6 +53,7 @@ times_for_2020 <- read_csv(file = "2020.csv", col_types = colspec)
 times_for_2021 <- read_csv(file = "2021.csv", col_types = colspec)
 times_for_2022 <- read_csv(file = "2022.csv", col_types = colspec)
 times_for_2023 <- read_csv(file = "2023.csv", col_types = colspec)
+times_for_2024 <- read_csv(file = "2024.csv", col_types = colspec)
 
 completion_times <- rbind(
     times_for_2017,
@@ -61,7 +62,8 @@ completion_times <- rbind(
     times_for_2020,
     times_for_2021,
     times_for_2022,
-    times_for_2023
+    times_for_2023,
+    times_for_2024
   ) %>%
   mutate(
     Weekday = wday(Date, label = TRUE),
