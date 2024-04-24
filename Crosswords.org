@@ -1,0 +1,245 @@
+#+Title: Nerdy Crossword Statistics
+#+Author: Tom Small III
+#+property: header-args:R :session *R:Crossword* :colnames yes
+#+property: header-args:R+ :width 600 :height 480 :bg "transparent"
+
+* Setup
+
+#+begin_src elisp :results none
+  (org-display-inline-images)
+  (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 0 t)
+  (setq-local org-confirm-babel-evaluate nil)
+#+end_src
+
+* Introduction
+
+Teresa and I are avid New York Times crossword people. It kind of happened by accident. We started solving crosswords for fun together to pass the time. We eventually tried the NY Times's crosswords, and quickly realized how much better they are than everyone else's. So we subscribed, and now we do one every morning with our coffee.
+
+We watched /[[https://en.wikipedia.org/wiki/Wordplay_%28film%29][Wordplay]]/ and laughed at the notebooks people in it kept of their completion times. Well, I guess the laugh's on us. This is our notebook. And since I'm a programmer, it's even nerdier: our notebook has built-in analysis.
+
+* Colophon
+
+This document is written in a literate programming style, in the [[https://www.r-project.org/][R programming language]], using Emacs and org-mode. It uses a few great libraries from [[http://tidyverse.org/][the tidyverse]].
+
+#+begin_src R :results none
+  library(lubridate)
+  library(tidyverse)
+#+end_src
+
+* Source data
+
+The source data is how long it took us to complete each day's puzzle. The NY Times doesn't provide an API to get this data. Plus I like having my own local copy. So every day after we finish the puzzle I type our completion time into a CSV file.
+
+I have one CSV file for each year since we started tracking. Here I load all of them into a single variable (=completion_times=) and parse the date.
+
+#+begin_src R :results none
+  # TODO: Figure out why col_time() stopped working.
+  colspec <- cols(
+    Date = col_date(format = ""),
+    Time = col_character()
+  )
+
+  times_for_2017 <- read_csv(file = "2017.csv", col_types = colspec)
+  times_for_2018 <- read_csv(file = "2018.csv", col_types = colspec)
+  times_for_2019 <- read_csv(file = "2019.csv", col_types = colspec)
+  times_for_2020 <- read_csv(file = "2020.csv", col_types = colspec)
+  times_for_2021 <- read_csv(file = "2021.csv", col_types = colspec)
+  times_for_2022 <- read_csv(file = "2022.csv", col_types = colspec)
+  times_for_2023 <- read_csv(file = "2023.csv", col_types = colspec)
+  times_for_2024 <- read_csv(file = "2024.csv", col_types = colspec)
+
+  completion_times <- rbind(
+      times_for_2017,
+      times_for_2018,
+      times_for_2019,
+      times_for_2020,
+      times_for_2021,
+      times_for_2022,
+      times_for_2023,
+      times_for_2024
+    ) %>%
+    mutate(
+      Weekday = wday(Date, label = TRUE),
+      Month = month(Date, label = TRUE),
+      Year = year(Date),
+      Time = parse_time(Time)
+    )
+#+end_src
+
+Here are the last eight days' worth of data.
+
+#+begin_src R
+  completion_times %>%
+    select(Date, Weekday, Time) %>%
+    tail(n = 8)
+#+end_src
+
+#+RESULTS:
+|       Date | Weekday |     Time |
+|------------+---------+----------|
+| 2024-04-17 | Wed     | 00:12:31 |
+| 2024-04-18 | Thu     | 00:21:38 |
+| 2024-04-19 | Fri     | 00:17:07 |
+| 2024-04-20 | Sat     | 00:24:55 |
+| 2024-04-21 | Sun     | 00:28:48 |
+| 2024-04-22 | Mon     | 00:07:45 |
+| 2024-04-23 | Tue     | 00:10:26 |
+| 2024-04-24 | Wed     | 00:16:01 |
+
+* Analysis
+
+Now that we have our raw data we can start the fun part: analyzing it.
+
+** Times by day
+
+We'll start with an obvious question: for each day of the week, what is our average, fastest, and slowest time?
+
+#+begin_src R
+  times_by_day <- completion_times %>%
+    group_by(Weekday) %>%
+    summarise(
+      Average = hms::as.hms(round(mean(Time))),
+      Fastest = hms::as.hms(min(Time)),
+      Slowest = hms::as.hms(max(Time))
+    )
+
+  times_by_day
+#+end_src
+
+#+RESULTS:
+| Weekday |  Average |  Fastest |  Slowest |
+|---------+----------+----------+----------|
+| Sun     | 00:37:54 | 00:16:15 | 01:46:06 |
+| Mon     | 00:07:22 | 00:04:16 | 00:17:25 |
+| Tue     | 00:10:28 | 00:04:53 | 00:29:58 |
+| Wed     | 00:14:09 | 00:06:21 | 00:46:30 |
+| Thu     | 00:21:32 | 00:08:22 | 00:54:55 |
+| Fri     | 00:24:51 | 00:08:47 | 01:04:17 |
+| Sat     | 00:29:45 | 00:09:28 | 01:29:04 |
+
+Here you can see our average times graphically:
+
+#+begin_src R :results graphics file :file crossword-times-by-day.png
+  ggplot(times_by_day) +
+    geom_bar(
+      mapping = aes(x = Weekday, y = Average),
+      stat = "identity"
+    )
+#+end_src
+
+#+RESULTS:
+[[file:crossword-times-by-day.png]]
+
+And this is a visual representation of the variation in our times:
+
+#+begin_src R :results graphics file :file crossword-variation-by-day.png
+  ggplot(completion_times) +
+    geom_boxplot(
+      mapping = aes(x = Weekday, y = Time)
+    )
+#+end_src
+
+#+RESULTS:
+[[file:crossword-variation-by-day.png]]
+
+** Percentiles
+
+Averages can be heavily skewed by outliers. Percentiles can help give a clearer picture of a large set of data points. Here are the 85th, 75th, and 50th percentiles for the completion dates.
+
+#+begin_src R
+  completion_times %>%
+    group_by(Weekday) %>%
+    summarise(
+      "85th" = hms::as.hms(round(quantile(Time, probs = 0.85))),
+      "75th" = hms::as.hms(round(quantile(Time, probs = 0.75))),
+      "50th" = hms::as.hms(round(quantile(Time, probs = 0.5))),
+      "25th" = hms::as.hms(round(quantile(Time, probs = 0.25)))
+    )
+#+end_src
+
+#+RESULTS:
+| Weekday |     85th |     75th |     50th |     25th |
+|---------+----------+----------+----------+----------|
+| Sun     | 00:50:47 | 00:44:52 | 00:34:22 | 00:28:52 |
+| Mon     | 00:09:18 | 00:08:26 | 00:07:01 | 00:05:50 |
+| Tue     | 00:14:14 | 00:12:11 | 00:09:28 | 00:07:49 |
+| Wed     | 00:19:32 | 00:17:06 | 00:12:54 | 00:10:12 |
+| Thu     | 00:29:46 | 00:26:17 | 00:20:26 | 00:16:04 |
+| Fri     | 00:33:38 | 00:30:10 | 00:23:00 | 00:18:02 |
+| Sat     | 00:41:16 | 00:34:54 | 00:28:18 | 00:21:08 |
+
+** By day, by month
+
+We're also curious how our times change from month to month. Our hypothesis is that they'll get longer every month of the year, from January to December, because the puzzles themselves will get harder.
+
+#+begin_src R :results graphics file :file crossword-day-month.png
+  times_by_month <- completion_times %>%
+    group_by(Month, Weekday) %>%
+    summarise(
+      Average = hms::as.hms(round(mean(Time)))
+    )
+
+  ggplot(times_by_month) +
+    geom_bar(
+      mapping = aes(x = Weekday, y = Average, fill = Month),
+      position = "dodge",
+      stat = "identity"
+    )
+#+end_src
+
+#+RESULTS:
+[[file:crossword-day-month.png]]
+
+It's tough to tell so far if that's actually true. It's true for some of the days, but not all of them. We'll have to wait and see what happens over the course of the year to have a better answer to the question.
+
+** By day, by year
+
+#+begin_src R :results graphics file :file crossword-day-year.png
+  times_by_weekday_year <- completion_times %>%
+    group_by(Weekday, Year) %>%
+    summarise(Average = hms::as.hms(round(mean(Time))))
+
+  times_by_weekday_year$Year <- factor(times_by_weekday_year$Year)
+
+  ggplot(times_by_weekday_year) +
+    geom_bar(
+      mapping = aes(x = Weekday, y = Average, fill = Year),
+      position = "dodge",
+      stat = "identity"
+    )
+#+end_src
+
+#+RESULTS:
+[[file:crossword-day-year.png]]
+
+** By month, by year
+
+#+begin_src R :results graphics file :file crossword-month-year.png
+  times_by_month_year <- completion_times %>%
+    group_by(Month, Year) %>%
+    summarise(Average = hms::as.hms(round(mean(Time))))
+
+  times_by_month_year$Year <- factor(times_by_month_year$Year)
+
+  ggplot(times_by_month_year) +
+    geom_bar(
+      mapping = aes(x = Month, y = Average, fill = Year),
+      position = "dodge",
+      stat = "identity"
+    )
+#+end_src
+
+#+RESULTS:
+[[file:crossword-month-year.png]]
+
+** Over time
+
+#+begin_src R :results graphics file :file crossword-over-time.png
+  ggplot(completion_times, mapping = aes(x = Date, y = Time, color = Weekday)) +
+    geom_point() +
+    geom_smooth(se = FALSE)
+#+end_src
+
+#+RESULTS:
+[[file:crossword-over-time.png]]
+

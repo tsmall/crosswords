@@ -1,0 +1,142 @@
+#+Title: Wordle Stats
+#+property: header-args:R :session *R:Wordle* :colnames yes
+#+property: header-args:R+ :width 600 :height 480 :bg "transparent"
+
+* Setup
+
+#+begin_src elisp :results none
+  (org-display-inline-images)
+  (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 0 t)
+  (setq-local org-confirm-babel-evaluate nil)
+#+end_src
+
+#+begin_src R :results none
+  knitr::opts_chunk$set(echo = TRUE)
+
+  library(lubridate)
+  library(tidyverse)
+#+end_src
+
+* Source Data
+
+The source data is whether we won and, if so, the number of guesses it took us to find the word. These are stored in a single CSV file.
+
+#+begin_src R :results none
+  wordle_stats <-
+    read_csv(file = "wordle.csv", col_types = cols(
+      Date    = col_date(format = ""),
+      Guesses = col_factor(levels = c('1', '2', '3', '4', '5', '6', 'X'))
+    )) %>%
+    mutate(
+      Weekday = wday(Date, label = TRUE),
+      Won = Guesses != 'X',
+    ) %>%
+    select(Date, Weekday, Won, Guesses)
+
+  wordle_wins <- filter(wordle_stats, Won == TRUE)
+#+end_src
+
+Here are the last eight days worth of data.
+
+#+begin_src R :colnames yes
+  tail(wordle_stats, n = 8)
+#+end_src
+
+#+RESULTS:
+|       Date | Weekday | Won  | Guesses |
+|------------+---------+------+---------|
+| 2024-04-17 | Wed     | TRUE |       2 |
+| 2024-04-18 | Thu     | TRUE |       4 |
+| 2024-04-19 | Fri     | TRUE |       3 |
+| 2024-04-20 | Sat     | TRUE |       4 |
+| 2024-04-21 | Sun     | TRUE |       5 |
+| 2024-04-22 | Mon     | TRUE |       4 |
+| 2024-04-23 | Tue     | TRUE |       6 |
+| 2024-04-24 | Wed     | TRUE |       5 |
+
+* Wins vs Losses
+
+Here's a visualization of our overall win and loss percentages.
+
+#+begin_src R :results graphics file :file wordle-wins-losses.png
+  wordle_stats %>%
+    group_by(Won) %>%
+    count() %>%
+    ungroup() %>%
+    mutate(percent = `n` / sum(`n`)) %>%
+    arrange(percent) %>%
+    mutate(labels = scales::percent(percent)) %>%
+    ggplot(., aes(x = "", y = percent, fill = Won)) +
+      geom_col() +
+      geom_text(aes(label = labels), position = position_stack(vjust = 0.5)) +
+      coord_polar(theta = "y") +
+      theme_void()
+#+end_src
+
+#+RESULTS:
+[[file:wordle-wins-losses.png]]
+
+* All Time
+
+#+begin_src R
+  guesses_all_time <- wordle_stats %>%
+    group_by(Guesses) %>%
+    summarise(Count = n())
+
+  guesses_all_time
+#+end_src
+
+#+RESULTS:
+| Guesses | Count |
+|---------+-------|
+|       2 |    37 |
+|       3 |   245 |
+|       4 |   290 |
+|       5 |   139 |
+|       6 |    33 |
+|       X |    20 |
+
+#+begin_src R
+  wordle_wins %>%
+    mutate(
+      Guesses = as.numeric(levels(Guesses)[Guesses])
+    ) %>%
+    summarise(
+      mean = mean(Guesses),
+      median = median(Guesses),
+    )
+#+end_src
+
+#+RESULTS:
+|             mean | median |
+|------------------+--------|
+| 3.84677419354839 |      4 |
+
+#+begin_src R :results graphics file :file wordle-guesses-all-time.png
+  ggplot(guesses_all_time) +
+    geom_bar(
+      mapping = aes(x = Guesses, y = Count),
+      stat = "identity"
+    )
+#+end_src
+
+#+RESULTS:
+[[file:wordle-guesses-all-time.png]]
+
+* By Weekday
+
+#+begin_src R :results graphics file :file wordle-guesses-by-weekday.png
+  wordle_stats %>%
+    group_by(Weekday, Guesses) %>%
+    summarise(Count = n()) %>%
+    ggplot() +
+      geom_bar(
+        mapping = aes(x = Weekday, y = Count),
+        position = "dodge",
+        stat = "identity"
+      ) +
+      facet_wrap(~ Guesses)
+#+end_src
+
+#+RESULTS:
+[[file:wordle-guesses-by-weekday.png]]
