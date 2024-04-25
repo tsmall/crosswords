@@ -2,4 +2,6 @@
 .Rhistory
 .Rproj.user
 
+*.png
+
 packrat/lib*/
