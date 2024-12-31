@@ -45,14 +45,14 @@ Here are the last eight days worth of data.
 #+RESULTS:
 |       Date | Weekday | Won  | Guesses |
 |------------+---------+------+---------|
-| 2024-04-17 | Wed     | TRUE |       2 |
-| 2024-04-18 | Thu     | TRUE |       4 |
-| 2024-04-19 | Fri     | TRUE |       3 |
-| 2024-04-20 | Sat     | TRUE |       4 |
-| 2024-04-21 | Sun     | TRUE |       5 |
-| 2024-04-22 | Mon     | TRUE |       4 |
-| 2024-04-23 | Tue     | TRUE |       6 |
-| 2024-04-24 | Wed     | TRUE |       5 |
+| 2024-12-18 | Wed     | TRUE |       4 |
+| 2024-12-19 | Thu     | TRUE |       4 |
+| 2024-12-20 | Fri     | TRUE |       4 |
+| 2024-12-21 | Sat     | TRUE |       4 |
+| 2024-12-25 | Wed     | TRUE |       3 |
+| 2024-12-28 | Sat     | TRUE |       4 |
+| 2024-12-29 | Sun     | TRUE |       5 |
+| 2024-12-30 | Mon     | TRUE |       3 |
 
 * Wins vs Losses
 
@@ -89,12 +89,12 @@ Here's a visualization of our overall win and loss percentages.
 #+RESULTS:
 | Guesses | Count |
 |---------+-------|
-|       2 |    37 |
-|       3 |   245 |
-|       4 |   290 |
-|       5 |   139 |
-|       6 |    33 |
-|       X |    20 |
+|       2 |    49 |
+|       3 |   312 |
+|       4 |   366 |
+|       5 |   184 |
+|       6 |    45 |
+|       X |    23 |
 
 #+begin_src R
   wordle_wins %>%
@@ -110,7 +110,7 @@ Here's a visualization of our overall win and loss percentages.
 #+RESULTS:
 |             mean | median |
 |------------------+--------|
-| 3.84677419354839 |      4 |
+| 3.85774058577406 |      4 |
 
 #+begin_src R :results graphics file :file wordle-guesses-all-time.png
   ggplot(guesses_all_time) +
