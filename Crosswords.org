@@ -47,6 +47,7 @@ I have one CSV file for each year since we started tracking. Here I load all of 
   times_for_2022 <- read_csv(file = "2022.csv", col_types = colspec)
   times_for_2023 <- read_csv(file = "2023.csv", col_types = colspec)
   times_for_2024 <- read_csv(file = "2024.csv", col_types = colspec)
+  times_for_2025 <- read_csv(file = "2025.csv", col_types = colspec)
 
   completion_times <- rbind(
       times_for_2017,
@@ -56,7 +57,8 @@ I have one CSV file for each year since we started tracking. Here I load all of 
       times_for_2021,
       times_for_2022,
       times_for_2023,
-      times_for_2024
+      times_for_2024,
+      times_for_2025
     ) %>%
     mutate(
       Weekday = wday(Date, label = TRUE),
@@ -77,14 +79,14 @@ Here are the last eight days' worth of data.
 #+RESULTS:
 |       Date | Weekday |     Time |
 |------------+---------+----------|
-| 2024-12-13 | Fri     | 00:11:23 |
-| 2024-12-17 | Tue     | 00:05:16 |
 | 2024-12-18 | Wed     | 00:08:47 |
 | 2024-12-19 | Thu     | 00:16:07 |
 | 2024-12-20 | Fri     | 00:16:32 |
 | 2024-12-25 | Wed     | 00:06:38 |
 | 2024-12-28 | Sat     | 00:16:23 |
 | 2024-12-30 | Mon     | 00:06:54 |
+| 2024-12-31 | Tue     | 00:06:16 |
+| 2025-01-01 | Wed     | 00:09:30 |
 
 * Analysis
 
@@ -111,8 +113,8 @@ We'll start with an obvious question: for each day of the week, what is our aver
 |---------+----------+----------+----------|
 | Sun     | 00:37:10 | 00:16:15 | 01:46:06 |
 | Mon     | 00:07:15 | 00:04:16 | 00:17:25 |
-| Tue     | 00:10:19 | 00:04:53 | 00:29:58 |
-| Wed     | 00:13:55 | 00:06:21 | 00:46:30 |
+| Tue     | 00:10:18 | 00:04:53 | 00:29:58 |
+| Wed     | 00:13:54 | 00:06:21 | 00:46:30 |
 | Thu     | 00:21:03 | 00:08:22 | 00:54:55 |
 | Fri     | 00:24:11 | 00:08:47 | 01:04:17 |
 | Sat     | 00:29:07 | 00:09:28 | 01:29:04 |
@@ -162,8 +164,8 @@ Averages can be heavily skewed by outliers. Percentiles can help give a clearer 
 |---------+----------+----------+----------+----------|
 | Sun     | 00:50:29 | 00:44:26 | 00:33:44 | 00:27:56 |
 | Mon     | 00:09:14 | 00:08:17 | 00:06:56 | 00:05:47 |
-| Tue     | 00:13:56 | 00:11:59 | 00:09:23 | 00:07:48 |
-| Wed     | 00:19:05 | 00:16:52 | 00:12:38 | 00:10:06 |
+| Tue     | 00:13:54 | 00:11:59 | 00:09:23 | 00:07:46 |
+| Wed     | 00:19:03 | 00:16:52 | 00:12:36 | 00:10:06 |
 | Thu     | 00:28:42 | 00:25:51 | 00:19:54 | 00:15:21 |
 | Fri     | 00:33:16 | 00:29:29 | 00:22:18 | 00:17:15 |
 | Sat     | 00:40:13 | 00:34:13 | 00:27:19 | 00:20:38 |
