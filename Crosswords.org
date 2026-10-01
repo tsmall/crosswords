@@ -17,6 +17,16 @@ Teresa and I are avid New York Times crossword people. It kind of happened by ac
 
 We watched /[[https://en.wikipedia.org/wiki/Wordplay_%28film%29][Wordplay]]/ and laughed at the notebooks people in it kept of their completion times. Well, I guess the laugh's on us. This is our notebook. And since I'm a programmer, it's even nerdier: our notebook has built-in analysis.
 
+* Setup
+
+If this is your first time running this program, execute this code:
+
+#+begin_example R :results none
+  install.packages("ggplot2")
+  install.packages("lubridate")
+  install.packages("tidyverse")
+#+end_example
+
 * Colophon
 
 This document is written in a literate programming style, in the [[https://www.r-project.org/][R programming language]], using Emacs and org-mode. It uses a few great libraries from [[http://tidyverse.org/][the tidyverse]].
@@ -48,6 +58,7 @@ I have one CSV file for each year since we started tracking. Here I load all of 
   times_for_2023 <- read_csv(file = "2023.csv", col_types = colspec)
   times_for_2024 <- read_csv(file = "2024.csv", col_types = colspec)
   times_for_2025 <- read_csv(file = "2025.csv", col_types = colspec)
+  times_for_2026 <- read_csv(file = "2026.csv", col_types = colspec)
 
   completion_times <- rbind(
       times_for_2017,
@@ -58,7 +69,8 @@ I have one CSV file for each year since we started tracking. Here I load all of 
       times_for_2022,
       times_for_2023,
       times_for_2024,
-      times_for_2025
+      times_for_2025,
+      times_for_2026
     ) %>%
     mutate(
       Weekday = wday(Date, label = TRUE),
@@ -79,14 +91,14 @@ Here are the last eight days' worth of data.
 #+RESULTS:
 |       Date | Weekday |     Time |
 |------------+---------+----------|
-| 2025-07-21 | Mon     | 00:04:38 |
-| 2025-07-23 | Wed     | 00:06:15 |
-| 2025-07-24 | Thu     | 00:15:54 |
-| 2025-07-26 | Sat     | 00:09:45 |
-| 2025-07-27 | Sun     | 00:34:27 |
-| 2025-08-02 | Sat     | 00:19:00 |
-| 2025-08-04 | Mon     | 00:05:13 |
-| 2025-08-05 | Tue     | 00:05:51 |
+| 2026-09-14 | Mon     | 00:06:02 |
+| 2026-09-15 | Tue     | 00:06:19 |
+| 2026-09-17 | Thu     | 00:15:21 |
+| 2026-09-18 | Fri     | 00:21:45 |
+| 2026-09-20 | Sun     | 00:26:44 |
+| 2026-09-22 | Tue     | 00:08:43 |
+| 2026-09-24 | Thu     | 00:12:31 |
+| 2026-09-25 | Fri     | 00:15:05 |
 
 * Analysis
 
@@ -111,13 +123,13 @@ We'll start with an obvious question: for each day of the week, what is our aver
 #+RESULTS:
 | Weekday |  Average |  Fastest |  Slowest |
 |---------+----------+----------+----------|
-| Sun     | 00:36:55 | 00:16:15 | 01:46:06 |
-| Mon     | 00:07:13 | 00:04:16 | 00:17:25 |
-| Tue     | 00:10:11 | 00:04:53 | 00:29:58 |
-| Wed     | 00:13:44 | 00:06:15 | 00:46:30 |
-| Thu     | 00:20:44 | 00:08:22 | 00:54:55 |
-| Fri     | 00:23:50 | 00:08:27 | 01:04:17 |
-| Sat     | 00:28:43 | 00:09:28 | 01:29:04 |
+| Sun     | 00:36:51 | 00:16:15 | 01:46:06 |
+| Mon     | 00:07:11 | 00:04:16 | 00:17:25 |
+| Tue     | 00:10:08 | 00:04:53 | 00:29:58 |
+| Wed     | 00:13:42 | 00:06:00 | 00:46:30 |
+| Thu     | 00:20:41 | 00:08:22 | 00:54:55 |
+| Fri     | 00:23:43 | 00:08:27 | 01:04:17 |
+| Sat     | 00:28:41 | 00:09:28 | 01:29:04 |
 
 Here you can see our average times graphically:
 
@@ -162,13 +174,13 @@ Averages can be heavily skewed by outliers. Percentiles can help give a clearer 
 #+RESULTS:
 | Weekday |     85th |     75th |     50th |     25th |
 |---------+----------+----------+----------+----------|
-| Sun     | 00:49:56 | 00:44:08 | 00:33:30 | 00:27:38 |
-| Mon     | 00:09:13 | 00:08:15 | 00:06:54 | 00:05:45 |
-| Tue     | 00:13:46 | 00:11:52 | 00:09:13 | 00:07:41 |
-| Wed     | 00:18:46 | 00:16:40 | 00:12:23 | 00:10:02 |
-| Thu     | 00:28:30 | 00:25:30 | 00:19:19 | 00:15:06 |
-| Fri     | 00:33:09 | 00:28:32 | 00:21:55 | 00:16:56 |
-| Sat     | 00:40:09 | 00:34:01 | 00:26:51 | 00:20:27 |
+| Sun     | 00:49:52 | 00:43:53 | 00:33:28 | 00:27:40 |
+| Mon     | 00:09:13 | 00:08:11 | 00:06:53 | 00:05:44 |
+| Tue     | 00:13:43 | 00:11:42 | 00:09:10 | 00:07:38 |
+| Wed     | 00:18:40 | 00:16:32 | 00:12:16 | 00:09:59 |
+| Thu     | 00:28:28 | 00:25:18 | 00:19:14 | 00:15:01 |
+| Fri     | 00:33:08 | 00:28:24 | 00:21:48 | 00:16:41 |
+| Sat     | 00:40:08 | 00:33:50 | 00:26:47 | 00:20:23 |
 
 ** By day, by month
 
